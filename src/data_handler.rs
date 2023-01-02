@@ -12,6 +12,7 @@ use std::{error::Error, io::Cursor};
 // Filter_df
 // Analyze_df
 // Generate parallelism
+// Move every config data to env
 
 const CONNECTION_STRING:&str = "DefaultEndpointsProtocol=https;AccountName=azdsiodsbcdev;AccountKey=62gIy1bkl1D2atNDMqSv5sKLKMbOQLPlnIifO48qKMz88D+iDE7G1Yg7nlfi4pBQKqCQ89HEtPqv01GWowgzzA==;EndpointSuffix=core.windows.net";
 
