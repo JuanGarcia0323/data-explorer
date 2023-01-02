@@ -17,7 +17,6 @@ impl DevTools {
         let formated_message = format!("\n \n{}", message);
         self.message.push(formated_message)
     }
-
     pub fn save_messages(&self) {
         let file_name = format!("{}.txt", &self.title_testing);
         let mut file = OpenOptions::new()

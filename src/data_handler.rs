@@ -6,7 +6,12 @@ use std::{error::Error, io::Cursor};
 
 // Todo
 // Generate wraper-error to have more exact errors while writing code
-//
+// Make a function to measure memory on dev-tools
+// Create get_input function
+// Create filter_data
+// Filter_df
+// Analyze_df
+// Generate parallelism
 
 const CONNECTION_STRING:&str = "DefaultEndpointsProtocol=https;AccountName=azdsiodsbcdev;AccountKey=62gIy1bkl1D2atNDMqSv5sKLKMbOQLPlnIifO48qKMz88D+iDE7G1Yg7nlfi4pBQKqCQ89HEtPqv01GWowgzzA==;EndpointSuffix=core.windows.net";
 
