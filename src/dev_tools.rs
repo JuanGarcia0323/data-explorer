@@ -6,6 +6,10 @@ use std::{
     time::Instant,
 };
 
+// ============ Todo ============
+// Modify measure_performance
+// Add new method
+
 pub struct DevTools {
     pub title_testing: String,
     pub message: Vec<String>,

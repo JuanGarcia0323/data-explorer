@@ -603,8 +603,10 @@ dependencies = [
  "azure_core",
  "azure_storage",
  "azure_storage_blobs",
+ "bytes",
  "futures",
  "polars",
+ "rand 0.7.3",
  "reqwest",
  "tokio",
 ]
