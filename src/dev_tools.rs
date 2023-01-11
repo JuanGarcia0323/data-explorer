@@ -5,18 +5,21 @@ use std::{
     io::{ErrorKind, Write},
     time::Instant,
 };
-
-// ============ Todo ============
-// Modify measure_performance
-// Add new method
-
 pub struct DevTools {
-    pub title_testing: String,
-    pub message: Vec<String>,
-    pub random_number: u32,
-    pub range: Range<u32>,
+    title_testing: String,
+    message: Vec<String>,
+    random_number: u32,
+    range: Range<u32>,
 }
 impl DevTools {
+    pub fn new(title_testing: String, range: Range<u32>) -> DevTools {
+        return DevTools {
+            title_testing,
+            message: vec![String::from("")],
+            random_number: 0,
+            range,
+        };
+    }
     pub fn write_message(&mut self, message: String) {
         let formated_message = format!("\n \n{}", message);
         self.message.push(formated_message)
@@ -48,42 +51,27 @@ impl DevTools {
         random
     }
 
-    pub fn measure_performance(&mut self, cb_test: impl Fn(&Vec<u32>, u32) -> u32, times: u32) {
+    pub fn measure_performance(&mut self, cb: impl Fn(u32), times: u32) {
         // Should take a function as parameter and mesure the execution time as well should test the function the amount of times specified
-        let results: Vec<u32> = (self.range.clone()).collect();
+        let random_number: u32 = self.auto_generate_number(self.range.clone());
         let mut total_duration: f32 = 0.0;
         println!("Starting Test");
 
         for i in 0..times {
-            let random_number: u32 = self.auto_generate_number(self.range.clone());
             // Measuring time
             let start_time = Instant::now();
-            let index_of_result = cb_test(&results, random_number);
+            cb(random_number);
             let duration = start_time.elapsed();
 
-            let finding_message = format!("The algorithm was looking for: {}", random_number);
             let sub_title = format!("--------- Iteration number: {} ---------", i + 1);
-            let index_result_message = format!("The index of the result: {}", index_of_result);
-            let checking_result_message =
-                format!("Checking result: {}", results[index_of_result as usize]);
             let time_message = format!("Time: {:?}", duration);
             total_duration = total_duration + duration.as_secs_f32();
 
             println!("{}", sub_title);
-            println!("{}", index_result_message);
-            println!("{}", finding_message);
-            println!("{}", checking_result_message);
             println!("{}", time_message);
 
             self.write_message(sub_title);
-            self.write_message(index_result_message);
-            self.write_message(finding_message);
-            self.write_message(checking_result_message);
             self.write_message(time_message);
-
-            if index_of_result != random_number {
-                panic!("The returned result is incorrect");
-            }
         }
 
         total_duration = total_duration / (times + 1) as f32;
