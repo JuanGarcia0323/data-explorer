@@ -32,25 +32,7 @@ impl DataHandler {
         return DataHandler { container_client };
     }
 
-    pub async fn get_blobs(
-        &mut self,
-        // mut filter_function: impl FnMut(Blob) -> bool,
-    ) -> ListBlobsResponse {
-        // let result = self
-        //     .container_client
-        //     .as_ref()
-        //     .unwrap()
-        //     .list_blobs()
-        //     .into_stream()
-        //     .next()
-        //     .await
-        //     .into_iter()
-        //     .filter(|b| {
-        //         let blob = b.unwrap().blobs.blobs();
-        //         let filter_result = filter_function(b);
-        //         return filter_result;
-        //     });
-
+    pub async fn get_blobs(&mut self) -> ListBlobsResponse {
         let result = self
             .container_client
             .as_ref()
@@ -99,12 +81,9 @@ impl DataHandler {
             .collect::<Vec<Blob>>()
     }
 
-    pub fn filter_df_equal(df: DataFrame, column: &str, value: &str) -> DataFrame {
-        let start_time = Instant::now();
+    pub fn filter_df_equal(df: DataFrame, column: &str, value: impl NumericNative) -> DataFrame {
         let filter: ChunkedArray<BooleanType> = df.column(column).unwrap().equal(value).unwrap();
         let result = df.filter(&filter).unwrap();
-        let duration = start_time.elapsed().as_secs_f32();
-        println!("Filtering DF took: {}s", duration);
         return result;
     }
 
