@@ -2,20 +2,18 @@ use azure_storage::ConnectionString;
 use azure_storage_blobs::prelude::*;
 use bytes::Bytes;
 use futures::StreamExt;
-use polars::{export::num::PrimInt, prelude::*};
+use polars::prelude::*;
 use std::{io::Cursor, num::NonZeroU32};
 
 // ============ Todo ============
-// Evaluate while downloading blob-files
+// Use pagination to avoid download all the blobs
 // Generate wraper-error to have more exact errors while writing code
 // Make a function to measure memory on dev-tools
 // Create get_input function
-// Create filter_data
-// Filter_df
 // Generate parallelism
 // Move every config data to env
 // Add some kind of error handler inside of methods of DataHandler (in the best case something generic)
-// Find how to use Proxie
+// Find a way to use Proxie
 
 pub struct DataHandler {
     container_client: Option<ContainerClient>,

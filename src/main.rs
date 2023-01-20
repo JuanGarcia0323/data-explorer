@@ -5,7 +5,7 @@ use std::time::Instant;
 use azure_storage_blobs::blob::Blob;
 use data_handler::DataHandler;
 use dev_tools::DevTools;
-use polars::{io::csv, prelude::NumericNative};
+use polars::prelude::NumericNative;
 // use dev_tools::DevTools;
 // const CONNECTION_STRING_IODS:&str = "DefaultEndpointsProtocol=https;AccountName=azdsiodsbcdev;AccountKey=62gIy1bkl1D2atNDMqSv5sKLKMbOQLPlnIifO48qKMz88D+iDE7G1Yg7nlfi4pBQKqCQ89HEtPqv01GWowgzzA==;EndpointSuffix=core.windows.net";
 
