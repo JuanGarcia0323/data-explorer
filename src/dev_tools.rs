@@ -2,7 +2,7 @@ use core::ops::Range;
 use rand::{distributions::uniform::SampleRange, Rng};
 use std::{
     fs::{File, OpenOptions},
-    io::{ErrorKind, Write},
+    io::{stdin, ErrorKind, Write},
     time::Instant,
 };
 pub struct DevTools {
@@ -81,5 +81,14 @@ impl DevTools {
         );
         self.write_message(total_duration_message);
         self.save_messages()
+    }
+
+    pub fn get_input(message: Option<String>) -> String {
+        if message.is_some() {
+            println!("{}", message.unwrap())
+        }
+        let mut new_string = String::new();
+        stdin().read_line(&mut new_string).unwrap();
+        return String::from(new_string.trim());
     }
 }

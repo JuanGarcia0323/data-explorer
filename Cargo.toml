@@ -11,7 +11,7 @@ azure_core = "*"
 azure_storage_blobs = "*"
 reqwest = "*"
 futures = "*"
-polars = { version= "0.26.1", features=["docs", "csv-file", "temporal", "fmt", "dtype-slim", "polars-io", "docs-selection", "dtype-full", "performant", "serde-lazy", "parquet", "lazy", "private", "ipc", "mode", "object", "polars-lazy"]}
+polars = { version = "0.26.1", features = ["docs", "csv-file", "temporal", "fmt", "dtype-slim", "polars-io", "docs-selection", "dtype-full", "performant", "serde-lazy", "parquet", "lazy", "private", "ipc", "mode", "object", "polars-lazy"] }
 tokio = { version = "*", features = ["full"] }
 bytes= "*"
 rand = "0.8.5"

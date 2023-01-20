@@ -1,9 +1,9 @@
 use azure_storage::ConnectionString;
-use azure_storage_blobs::{container::operations::ListBlobsResponse, prelude::*};
+use azure_storage_blobs::prelude::*;
 use bytes::Bytes;
 use futures::StreamExt;
-use polars::prelude::*;
-use std::{io::Cursor, time::Instant};
+use polars::{export::num::PrimInt, prelude::*};
+use std::{io::Cursor, num::NonZeroU32};
 
 // ============ Todo ============
 // Evaluate while downloading blob-files
@@ -32,18 +32,26 @@ impl DataHandler {
         return DataHandler { container_client };
     }
 
-    pub async fn get_blobs(&mut self) -> ListBlobsResponse {
-        let result = self
+    pub async fn get_blobs(&mut self) -> Vec<Blob> {
+        let mut blobs: Vec<Blob> = vec![];
+        let mut stream = self
             .container_client
-            .as_ref()
+            .as_mut()
             .unwrap()
             .list_blobs()
-            .into_stream()
-            .next()
-            .await
-            .expect("An error ocurred while getting the blobs")
-            .unwrap();
-        return result;
+            .max_results(NonZeroU32::new(3u32).unwrap())
+            .into_stream();
+
+        while let Some(value) = stream.next().await {
+            value
+                .unwrap()
+                .blobs
+                .blobs()
+                .for_each(|b| blobs.push(b.to_owned()));
+        }
+
+        println!("Len Blobs:{}", blobs.len());
+        return blobs;
     }
 
     pub async fn get_specific_blob(&self, blob_name: &String) -> Bytes {
@@ -66,23 +74,25 @@ impl DataHandler {
             .expect("Error while dowloading blob_result data")
     }
 
-    pub fn get_data_frame(data: Bytes) -> DataFrame {
+    pub fn get_data_frame(data: Bytes, file_type: &String) -> DataFrame {
         let reader = Cursor::new(data); // Create a Cursor pointing towards the Bytes that compound the Blob
+        if file_type == "csv" {
+            return CsvReader::new(reader)
+                .with_ignore_parser_errors(true)
+                .finish()
+                .unwrap();
+        }
         ParquetReader::new(reader).finish().unwrap()
         // Read the Cursor and create a DataFrame
     }
 
-    pub fn filter_blobs(data: ListBlobsResponse, filter: impl FnMut(&Blob) -> bool) -> Vec<Blob> {
-        data.blobs
-            .blobs()
-            .into_iter()
-            .cloned()
-            .filter(filter)
-            .collect::<Vec<Blob>>()
+    pub fn filter_blobs(data: Vec<Blob>, filter: impl FnMut(&Blob) -> bool) -> Vec<Blob> {
+        let result: Vec<Blob> = data.into_iter().filter(filter).collect();
+        return result;
     }
 
     pub fn filter_df_equal(df: DataFrame, column: &str, value: impl NumericNative) -> DataFrame {
-        let filter: ChunkedArray<BooleanType> = df.column(column).unwrap().equal(value).unwrap();
+        let filter = df.column(column).unwrap().equal(value).unwrap();
         let result = df.filter(&filter).unwrap();
         return result;
     }
