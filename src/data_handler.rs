@@ -2,6 +2,7 @@ use azure_storage::ConnectionString;
 use azure_storage_blobs::prelude::*;
 use bytes::Bytes;
 use futures::StreamExt;
+// use polars::lazy::*;
 use polars::prelude::*;
 use std::{io::Cursor, num::NonZeroU32};
 
@@ -37,9 +38,10 @@ impl DataHandler {
             .as_mut()
             .unwrap()
             .list_blobs()
-            .max_results(NonZeroU32::new(3u32).unwrap())
+            .max_results(NonZeroU32::new(3000u32).unwrap())
             .into_stream();
 
+        // Maybe execute the analysis inside of the loop so in that way will be able to spare time downloading innecessary data
         while let Some(value) = stream.next().await {
             value
                 .unwrap()
@@ -72,11 +74,14 @@ impl DataHandler {
             .expect("Error while dowloading blob_result data")
     }
 
-    pub fn get_data_frame(data: Bytes, file_type: &String) -> DataFrame {
+    pub fn get_data_frame(data: Bytes, file_type: &String, field: &String) -> DataFrame {
         let reader = Cursor::new(data); // Create a Cursor pointing towards the Bytes that compound the Blob
+        let field_schema = Field::new(field, DataType::Utf8);
+        let schema = Schema::from(vec![field_schema].into_iter());
         if file_type == "csv" {
             return CsvReader::new(reader)
                 .with_ignore_parser_errors(true)
+                .with_dtypes(Some(&schema))
                 .finish()
                 .unwrap();
         }
@@ -89,8 +94,12 @@ impl DataHandler {
         return result;
     }
 
-    pub fn filter_df_equal(df: DataFrame, column: &str, value: impl NumericNative) -> DataFrame {
+    pub fn filter_df_equal(df: DataFrame, column: &str, value: &str) -> DataFrame {
         let filter = df.column(column).unwrap().equal(value).unwrap();
+        // let test = col("ULID");
+        // let new_df = df
+        // .lazy()
+        // .select([col(column).filter(col(column).equal(value))]);
         let result = df.filter(&filter).unwrap();
         return result;
     }
