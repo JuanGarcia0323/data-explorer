@@ -16,3 +16,5 @@ tokio = { version = "*", features = ["full"] }
 bytes= "*"
 rand = "0.8.5"
 regex = "1.7.1"
+toml = "0.5.11"
+serde = "1.0.152"

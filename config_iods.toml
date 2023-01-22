@@ -1,0 +1,10 @@
+[connection]
+connection_string = "DefaultEndpointsProtocol=https;AccountName=azdsiodsbcdev;AccountKey=62gIy1bkl1D2atNDMqSv5sKLKMbOQLPlnIifO48qKMz88D+iDE7G1Yg7nlfi4pBQKqCQ89HEtPqv01GWowgzzA==;EndpointSuffix=core.windows.net"
+container_name = "historicaliods"
+
+[search]
+name_blob = "reject_data/rawdata_20180902_9_8"
+value = "20762"
+column_filter = "RcdIdx"
+file_type = "parquet"
+path_save_files = "./"

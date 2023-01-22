@@ -4,11 +4,7 @@ use bytes::Bytes;
 use futures::StreamExt;
 // use polars::lazy::*;
 use polars::prelude::*;
-use std::{
-    fs::{self, File},
-    io::Cursor,
-    num::NonZeroU32,
-};
+use std::{fs::File, io::Cursor, num::NonZeroU32};
 
 // ============ Todo ============
 // Convert filter df into a filter lazy-df
@@ -25,7 +21,7 @@ pub struct DataHandler {
     container_client: Option<ContainerClient>,
 }
 impl DataHandler {
-    pub fn new(container_name: &str, connection_string: &str) -> DataHandler {
+    pub fn new(container_name: &str, connection_string: &str) -> Self {
         let connection_string = ConnectionString::new(connection_string).unwrap();
         let blob_service = BlobServiceClient::new(
             connection_string.account_name.unwrap(),
@@ -117,6 +113,4 @@ impl DataHandler {
         let file = File::create(file_name).unwrap();
         CsvWriter::new(file).finish(df).unwrap();
     }
-
-    // pub fn filter_dataframe(data:DataFrame, filter:)
 }

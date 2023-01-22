@@ -12,7 +12,7 @@ pub struct DevTools {
     range: Range<u32>,
 }
 impl DevTools {
-    pub fn new(title_testing: String, range: Range<u32>) -> DevTools {
+    pub fn new(title_testing: String, range: Range<u32>) -> Self {
         return DevTools {
             title_testing,
             message: vec![String::from("")],
