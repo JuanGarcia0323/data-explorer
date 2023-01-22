@@ -7,6 +7,7 @@ use polars::prelude::*;
 use std::{io::Cursor, num::NonZeroU32};
 
 // ============ Todo ============
+// Convert filter df into a filter lazy-df
 // Use pagination to avoid download all the blobs
 // Generate wraper-error to have more exact errors while writing code
 // Make a function to measure memory on dev-tools
@@ -94,7 +95,7 @@ impl DataHandler {
         return result;
     }
 
-    pub fn filter_df_equal(df: DataFrame, column: &str, value: &str) -> DataFrame {
+    pub fn filter_df_equal(df: &DataFrame, column: &str, value: &str) -> DataFrame {
         let filter = df.column(column).unwrap().equal(value).unwrap();
         // let test = col("ULID");
         // let new_df = df

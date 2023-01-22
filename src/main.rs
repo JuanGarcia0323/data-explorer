@@ -5,7 +5,7 @@ use std::time::Instant;
 use azure_storage_blobs::blob::Blob;
 use data_handler::DataHandler;
 use dev_tools::DevTools;
-use polars::prelude::NumericNative;
+use polars::prelude::DataFrame;
 use regex::Regex;
 // use dev_tools::DevTools;
 // const CONNECTION_STRING_IODS:&str = "DefaultEndpointsProtocol=https;AccountName=azdsiodsbcdev;AccountKey=62gIy1bkl1D2atNDMqSv5sKLKMbOQLPlnIifO48qKMz88D+iDE7G1Yg7nlfi4pBQKqCQ89HEtPqv01GWowgzzA==;EndpointSuffix=core.windows.net";
@@ -13,9 +13,9 @@ use regex::Regex;
 // const CONNECTION_STRING_MIP:&str = "DefaultEndpointsProtocol=https;AccountName=famcaremipstoragedev;AccountKey=SHpMv/XYB8s8sSzVQacyUDyaTCyKnHEUJwcyHrCeaB1F38Eqjj5opNV1aYSU1CPHaAtb4Cnkxwgr5DhomhVSmg==;EndpointSuffix=core.windows.net";
 
 // ================================= Data for MIP testing ===============================
-// const BLOB_FOR_TEST: &str = "MEHOOPANY-RTCIS_SYSDTL_TRN-2022";
+// const BLOB_FOR_TEST: &str = "MEHOOPANY-RTCIS_SYSDTL_TRN-20220926-054802";
 // "rtcis-processed"
-// 40037008630574700
+// 0040037009630663372
 // ================================= Data for IODS testing ===============================
 // Blob_name -> reject_data/rawdata_20180902_9_8
 // Container_name -> historicaliods
@@ -69,7 +69,7 @@ async fn main() {
     let message = Some(String::from(
         "Insert the type of file that we are looking for:",
     ));
-    let file_type: String = DevTools::get_input(message).parse().unwrap();
+    let file_type = DevTools::get_input(message);
 
     let start_time = Instant::now();
     let mut blob_handler = DataHandler::new(&container_name, &connection_string);
@@ -79,7 +79,7 @@ async fn main() {
     let duration_filtering = start_time.elapsed().as_secs_f32();
     println!("len filtered blobs: {}", filtered_blobs.len());
     let start_time = Instant::now();
-    analyse_data(&config, &mut blob_handler, filtered_blobs).await;
+    let result = analyse_data(&config, &mut blob_handler, filtered_blobs).await;
     let duration_analysing = start_time.elapsed().as_secs_f32();
     println!(
         "Looking for:{} with the value of {}",
@@ -87,6 +87,7 @@ async fn main() {
     );
     println!("Getting the data took: {}s", duration_filtering);
     println!("Anlysing the data took: {}s", duration_analysing);
+    println!("{}", result);
     let finish = Some(String::from("The execution end, press enter to continue"));
     DevTools::get_input(finish);
 }
@@ -97,17 +98,26 @@ async fn filter_data(config: &ConfigModel, handler: &mut DataHandler) -> Vec<Blo
     return result;
 }
 
-async fn analyse_data(config: &ConfigModel, handler: &mut DataHandler, blobs: Vec<Blob>) -> bool {
+async fn analyse_data(
+    config: &ConfigModel,
+    handler: &mut DataHandler,
+    blobs: Vec<Blob>,
+) -> DataFrame {
+    let mut final_df: DataFrame = DataFrame::default();
+    println!("Starting analisis with the value:{}", &config.value);
     for b in blobs {
+        println!("The name of the blob is: {}", &b.name);
         let data = handler.get_specific_blob(&b.name).await;
-        println!("{}", b.name);
         let df = DataHandler::get_data_frame(data, &config.file_type, &config.column_filter);
-        let founded = DataHandler::filter_df_equal(df, &config.column_filter, &config.value);
+        let founded = DataHandler::filter_df_equal(&df, &config.column_filter, &config.value);
 
-        if founded.is_empty() {
+        if !founded.is_empty() {
+            println!("========================== FOUNDED ==========================");
+            println!("{}", b.name);
             println!("{}", founded);
-            return true;
+            return df;
         }
+        final_df = df;
     }
-    return false;
+    return final_df;
 }
