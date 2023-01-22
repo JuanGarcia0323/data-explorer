@@ -87,37 +87,37 @@ async fn main() {
     );
     println!("Getting the data took: {}s", duration_filtering);
     println!("Anlysing the data took: {}s", duration_analysing);
-    println!("{}", result);
+    if result.is_some() {
+        println!("{}", result.unwrap());
+    }
     let finish = Some(String::from("The execution end, press enter to continue"));
     DevTools::get_input(finish);
 }
 
 async fn filter_data(config: &ConfigModel, handler: &mut DataHandler) -> Vec<Blob> {
-    let blobs = handler.get_blobs().await;
-    let result = DataHandler::filter_blobs(blobs, |b: &Blob| config.regx.is_match(&b.name));
-    return result;
+    let blobs = handler
+        .get_blobs(|b: &Blob| config.regx.is_match(&b.name))
+        .await;
+    // let result = DataHandler::filter_blobs(blobs, |b: &Blob| config.regx.is_match(&b.name));
+    return blobs;
 }
 
 async fn analyse_data(
     config: &ConfigModel,
     handler: &mut DataHandler,
     blobs: Vec<Blob>,
-) -> DataFrame {
-    let mut final_df: DataFrame = DataFrame::default();
+) -> Option<DataFrame> {
     println!("Starting analisis with the value:{}", &config.value);
     for b in blobs {
-        println!("The name of the blob is: {}", &b.name);
         let data = handler.get_specific_blob(&b.name).await;
         let df = DataHandler::get_data_frame(data, &config.file_type, &config.column_filter);
         let founded = DataHandler::filter_df_equal(&df, &config.column_filter, &config.value);
 
-        if !founded.is_empty() {
+        if founded {
             println!("========================== FOUNDED ==========================");
             println!("{}", b.name);
-            println!("{}", founded);
-            return df;
+            return Some(df);
         }
-        final_df = df;
     }
-    return final_df;
+    return None;
 }

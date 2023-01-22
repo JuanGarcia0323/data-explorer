@@ -32,7 +32,7 @@ impl DataHandler {
         return DataHandler { container_client };
     }
 
-    pub async fn get_blobs(&mut self) -> Vec<Blob> {
+    pub async fn get_blobs(&mut self, filter: impl Fn(&Blob) -> bool) -> Vec<Blob> {
         let mut blobs: Vec<Blob> = vec![];
         let mut stream = self
             .container_client
@@ -44,14 +44,13 @@ impl DataHandler {
 
         // Maybe execute the analysis inside of the loop so in that way will be able to spare time downloading innecessary data
         while let Some(value) = stream.next().await {
-            value
-                .unwrap()
-                .blobs
-                .blobs()
-                .for_each(|b| blobs.push(b.to_owned()));
+            value.unwrap().blobs.blobs().for_each(|b| {
+                if filter(b) {
+                    blobs.push(b.to_owned())
+                }
+            });
         }
 
-        println!("Len Blobs:{}", blobs.len());
         return blobs;
     }
 
@@ -95,14 +94,18 @@ impl DataHandler {
         return result;
     }
 
-    pub fn filter_df_equal(df: &DataFrame, column: &str, value: &str) -> DataFrame {
+    pub fn filter_df_equal(df: &DataFrame, column: &str, value: &str) -> bool {
         let filter = df.column(column).unwrap().equal(value).unwrap();
-        // let test = col("ULID");
-        // let new_df = df
-        // .lazy()
-        // .select([col(column).filter(col(column).equal(value))]);
-        let result = df.filter(&filter).unwrap();
-        return result;
+        let result = df
+            .column(column)
+            .unwrap()
+            .filter(&filter)
+            .unwrap()
+            .is_empty();
+        if result {
+            return false;
+        }
+        return true;
     }
 
     // pub fn filter_dataframe(data:DataFrame, filter:)
