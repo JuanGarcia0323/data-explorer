@@ -4,7 +4,11 @@ use bytes::Bytes;
 use futures::StreamExt;
 // use polars::lazy::*;
 use polars::prelude::*;
-use std::{io::Cursor, num::NonZeroU32};
+use std::{
+    fs::{self, File},
+    io::Cursor,
+    num::NonZeroU32,
+};
 
 // ============ Todo ============
 // Convert filter df into a filter lazy-df
@@ -106,6 +110,12 @@ impl DataHandler {
             return false;
         }
         return true;
+    }
+
+    pub fn save_file(df: &mut DataFrame, file_name: &String, path: &String) {
+        let file_name = format!("{}{}", path, file_name);
+        let file = File::create(file_name).unwrap();
+        CsvWriter::new(file).finish(df).unwrap();
     }
 
     // pub fn filter_dataframe(data:DataFrame, filter:)

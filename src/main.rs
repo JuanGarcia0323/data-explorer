@@ -28,6 +28,7 @@ struct ConfigModel {
     value: String,
     file_type: String,
     regx: Regex,
+    path_save_files: String,
 }
 impl ConfigModel {
     fn new(name: String, column_filter: String, value: String, file_type: String) -> ConfigModel {
@@ -38,6 +39,7 @@ impl ConfigModel {
         }
 
         let regx = Regex::new(&format!("({})(.*)({})", name, file_type)).unwrap();
+        let path_save_files: String = String::from("./");
 
         return ConfigModel {
             name,
@@ -45,6 +47,7 @@ impl ConfigModel {
             value,
             file_type,
             regx,
+            path_save_files,
         };
     }
 }
@@ -110,12 +113,13 @@ async fn analyse_data(
     println!("Starting analisis with the value:{}", &config.value);
     for b in blobs {
         let data = handler.get_specific_blob(&b.name).await;
-        let df = DataHandler::get_data_frame(data, &config.file_type, &config.column_filter);
+        let mut df = DataHandler::get_data_frame(data, &config.file_type, &config.column_filter);
         let founded = DataHandler::filter_df_equal(&df, &config.column_filter, &config.value);
 
         if founded {
             println!("========================== FOUNDED ==========================");
             println!("{}", b.name);
+            DataHandler::save_file(&mut df, &b.name, &config.path_save_files);
             return Some(df);
         }
     }
