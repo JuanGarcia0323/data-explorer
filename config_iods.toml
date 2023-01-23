@@ -8,3 +8,4 @@ value = "20762"
 column_filter = "RcdIdx"
 file_type = "parquet"
 path_save_files = "./"
+thread_slicing = 1000

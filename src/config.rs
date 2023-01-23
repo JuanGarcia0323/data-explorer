@@ -23,6 +23,7 @@ struct ConfigSearch {
     column_filter: Option<String>,
     file_type: Option<String>,
     path_save_files: Option<String>,
+    thread_slicing: Option<usize>,
 }
 
 #[derive(Debug)]
@@ -35,6 +36,7 @@ pub struct Config {
     pub file_type: String,
     pub path_save_files: String,
     pub regx: Regex,
+    pub thread_slicing: usize,
 }
 
 impl Config {
@@ -77,12 +79,13 @@ impl Config {
             }
         };
 
-        let (name_blob, value, column_filter, file_type, path_save_files): (
+        let (name_blob, value, column_filter, file_type, path_save_files, thread_slicing): (
             String,
             String,
             String,
             String,
             String,
+            usize,
         ) = match config_toml.search {
             Some(search) => {
                 let name_blob: String = search.name_blob.unwrap_or_else(|| {
@@ -106,7 +109,25 @@ impl Config {
                     String::from("./")
                 });
 
-                (name_blob, value, column_filter, file_type, path_save_files)
+                let thread_slicing: usize = search.thread_slicing.unwrap_or_else(|| {
+                    println!("The value couldn't be found or converted to u32, so the default value will be 100");
+                    // String::from("100")
+                    100
+                });
+                // .parse()
+                // .unwrap_or_else(|_| {
+                //     println!("The value for thread_slicing couldn't be converted, so it'll receive the value of 100.");
+                //     u32::from(100)
+                // });
+
+                (
+                    name_blob,
+                    value,
+                    column_filter,
+                    file_type,
+                    path_save_files,
+                    thread_slicing,
+                )
             }
             None => {
                 panic!("Missing search table")
@@ -119,7 +140,7 @@ impl Config {
             panic!("The only file types admited are: csv, parquet")
         }
 
-        let regx = Regex::new(&format!("({})(.*)({})", name_blob, file_type)).unwrap();
+        let regx = Regex::new(&format!("({name_blob})(.*)({file_type})")).unwrap();
 
         Config {
             connection_string,
@@ -130,6 +151,7 @@ impl Config {
             file_type,
             regx,
             path_save_files,
+            thread_slicing,
         }
     }
 }
