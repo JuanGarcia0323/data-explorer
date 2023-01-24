@@ -12,10 +12,12 @@ use std::{
 };
 
 // ============ Todo ============
+// Accept mutiple values to find
 // Convert filter df into a filter lazy-df
 // Generate wraper-error to have more exact errors while writing code
 // Add some kind of error handler inside of methods of DataHandler (in the best case something generic)
 // Find a way to use Proxie
+// Add function to get the data and analyse it in a different thread while downloading
 
 pub struct DataHandler {
     container_client: Option<ContainerClient>,
@@ -74,10 +76,14 @@ impl DataHandler {
             .expect("Error while dowloading blob_result data")
     }
 
-    pub fn get_data_frame(data: Bytes, file_type: &String, field: &String) -> DataFrame {
-        let reader = Cursor::new(data); // Create a Cursor pointing towards the Bytes that compound the Blob
-        let field_schema = Field::new(field, DataType::Utf8);
-        let schema = Schema::from(vec![field_schema].into_iter());
+    pub fn get_data_frame(data: Bytes, file_type: &String, field: &Vec<String>) -> DataFrame {
+        let reader = Cursor::new(data);
+        let mut field_schema = vec![];
+        for f in field {
+            field_schema.push(Field::new(f, DataType::Utf8))
+        }
+
+        let schema = Schema::from(field_schema.into_iter());
         if file_type == "csv" {
             return CsvReader::new(reader)
                 .with_ignore_parser_errors(true)
@@ -94,7 +100,7 @@ impl DataHandler {
         return result;
     }
 
-    pub fn filter_df_equal(df: &DataFrame, column: &str, value: &str) -> bool {
+    pub fn filter_column(df: &DataFrame, column: &str, value: &str) -> bool {
         let filter = df.column(column).unwrap().equal(value).unwrap();
         let result = df
             .column(column)

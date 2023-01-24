@@ -13,7 +13,7 @@ use polars::prelude::DataFrame;
 async fn main() {
     let config = Config::new();
     println!(
-        "Starting search for {}, with the value of: {}",
+        "Starting search for {}, with the value of: {:?}",
         &config.name_blob, &config.value
     );
 
@@ -94,7 +94,14 @@ async fn analyse_data(
     for b in blobs {
         let data = handler.get_specific_blob(&b.name).await;
         let mut df = DataHandler::get_data_frame(data, &config.file_type, &config.column_filter);
-        let founded = DataHandler::filter_df_equal(&df, &config.column_filter, &config.value);
+        let mut values_founded: u8 = 0;
+        for (i, c) in config.column_filter.iter().enumerate() {
+            let result = DataHandler::filter_column(&df, c, &config.value[i]);
+            if result {
+                values_founded = values_founded + 1
+            }
+        }
+        let founded = values_founded == config.value.len() as u8;
 
         if founded && return_first {
             results.push(Some(df));
