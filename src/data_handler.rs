@@ -3,8 +3,13 @@ use azure_storage_blobs::prelude::*;
 use bytes::Bytes;
 use futures::StreamExt;
 // use polars::lazy::*;
+use core::panic;
 use polars::prelude::*;
-use std::{fs::File, io::Cursor, num::NonZeroU32};
+use std::{
+    fs::{create_dir_all, File},
+    io::{Cursor, ErrorKind},
+    num::NonZeroU32,
+};
 
 // ============ Todo ============
 // Convert filter df into a filter lazy-df
@@ -105,7 +110,13 @@ impl DataHandler {
 
     pub fn save_file(df: &mut DataFrame, file_name: &String, path: &String) {
         let file_name = format!("{path}{file_name}");
-        let file = File::create(file_name).unwrap();
+        let file = File::create(&file_name).unwrap_or_else(|err| {
+            if err.kind() == ErrorKind::NotFound {
+                create_dir_all(path).unwrap();
+                return File::create(&file_name).unwrap();
+            }
+            panic!("{err}")
+        });
         CsvWriter::new(file).finish(df).unwrap();
     }
 }
