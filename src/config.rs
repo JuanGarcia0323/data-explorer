@@ -1,7 +1,7 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::io::Error as IoError;
+use std::io::{stdin, Error as IoError};
 use toml;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -147,5 +147,14 @@ impl Config {
             path_save_files,
             thread_slicing,
         }
+    }
+
+    pub fn get_input(message: Option<String>) -> String {
+        if message.is_some() {
+            println!("{}", message.unwrap())
+        }
+        let mut new_string = String::new();
+        stdin().read_line(&mut new_string).unwrap();
+        return String::from(new_string.trim());
     }
 }

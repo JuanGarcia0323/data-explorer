@@ -8,12 +8,7 @@ use std::{fs::File, io::Cursor, num::NonZeroU32};
 
 // ============ Todo ============
 // Convert filter df into a filter lazy-df
-// Use pagination to avoid download all the blobs
 // Generate wraper-error to have more exact errors while writing code
-// Make a function to measure memory on dev-tools
-// Create get_input function
-// Generate parallelism
-// Move every config data to env
 // Add some kind of error handler inside of methods of DataHandler (in the best case something generic)
 // Find a way to use Proxie
 
