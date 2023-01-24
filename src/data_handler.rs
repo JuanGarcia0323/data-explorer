@@ -76,18 +76,18 @@ impl DataHandler {
             .expect("Error while dowloading blob_result data")
     }
 
-    pub fn get_data_frame(data: Bytes, file_type: &String, field: &Vec<String>) -> DataFrame {
+    pub fn get_data_frame(data: Bytes, file_type: &String) -> DataFrame {
         let reader = Cursor::new(data);
-        let mut field_schema = vec![];
-        for f in field {
-            field_schema.push(Field::new(f, DataType::Utf8))
-        }
+        // let mut field_schema = vec![];
+        // for f in field {
+        //     field_schema.push(Field::new(f, DataType::Utf8))
+        // }
 
-        let schema = Schema::from(field_schema.into_iter());
+        // let schema = Schema::from(field_schema.into_iter());
         if file_type == "csv" {
             return CsvReader::new(reader)
                 .with_ignore_parser_errors(true)
-                .with_dtypes(Some(&schema))
+                // .with_dtypes(Some(&schema))
                 .finish()
                 .unwrap();
         }
@@ -101,9 +101,18 @@ impl DataHandler {
     }
 
     pub fn filter_column(df: &DataFrame, column: &str, value: &str) -> bool {
-        let filter = df.column(column).unwrap().equal(value).unwrap();
+        let filter = df
+            .column(column)
+            .unwrap()
+            .cast(&DataType::Utf8)
+            .unwrap()
+            .equal(value)
+            .unwrap();
+        // let filter = df.column(column).unwrap().equal(value).unwrap();
         let result = df
             .column(column)
+            .unwrap()
+            .cast(&DataType::Utf8)
             .unwrap()
             .filter(&filter)
             .unwrap()

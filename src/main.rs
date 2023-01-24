@@ -93,14 +93,16 @@ async fn analyse_data(
     let mut results: Vec<Option<DataFrame>> = vec![];
     for b in blobs {
         let data = handler.get_specific_blob(&b.name).await;
-        let mut df = DataHandler::get_data_frame(data, &config.file_type, &config.column_filter);
+        let mut df = DataHandler::get_data_frame(data, &config.file_type);
         let mut values_founded: u8 = 0;
+
         for (i, c) in config.column_filter.iter().enumerate() {
             let result = DataHandler::filter_column(&df, c, &config.value[i]);
             if result {
                 values_founded = values_founded + 1
             }
         }
+
         let founded = values_founded == config.value.len() as u8;
 
         if founded && return_first {
