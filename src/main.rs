@@ -9,10 +9,7 @@ use tokio::task::JoinHandle;
 use azure_storage_blobs::blob::Blob;
 use data_handler::DataHandler;
 use dev_tools::DevTools;
-use polars::{
-    export::rayon::{result, vec},
-    prelude::DataFrame,
-};
+use polars::prelude::DataFrame;
 
 #[tokio::main]
 async fn main() {
@@ -32,9 +29,8 @@ async fn main() {
     let start_time = Instant::now();
     // let result = analyse_data(&config, &mut blob_handler, filtered_blobs).await;
     let result = multi_thread_analisis(&config, filtered_blobs).await;
-    for r in result {
-        println!("{r}")
-    }
+    println!("{} results founded", result.len());
+
     let duration_analysing = start_time.elapsed().as_secs_f32();
     println!("Getting the data took: {duration_filtering}s");
     println!("Anlysing the data took: {duration_analysing}s");

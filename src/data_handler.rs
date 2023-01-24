@@ -109,7 +109,7 @@ impl DataHandler {
     }
 
     pub fn save_file(df: &mut DataFrame, file_name: &String, path: &String) {
-        let file_name = format!("{}{}", path, file_name);
+        let file_name = format!("{path}{file_name}");
         let file = File::create(file_name).unwrap();
         CsvWriter::new(file).finish(df).unwrap();
     }

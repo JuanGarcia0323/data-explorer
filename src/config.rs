@@ -114,12 +114,6 @@ impl Config {
                     // String::from("100")
                     100
                 });
-                // .parse()
-                // .unwrap_or_else(|_| {
-                //     println!("The value for thread_slicing couldn't be converted, so it'll receive the value of 100.");
-                //     u32::from(100)
-                // });
-
                 (
                     name_blob,
                     value,
