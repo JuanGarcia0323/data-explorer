@@ -32,8 +32,8 @@ pub struct Config {
     pub connection_string: String,
     pub container_name: String,
     pub name_blob: String,
-    pub value: String,
-    pub column_filter: String,
+    pub value: Vec<String>,
+    pub column_filter: Vec<String>,
     pub file_type: String,
     pub path_save_files: String,
     pub regx: Regex,
@@ -82,8 +82,8 @@ impl Config {
 
         let (name_blob, value, column_filter, file_type, path_save_files, thread_slicing): (
             String,
-            String,
-            String,
+            Vec<String>,
+            Vec<String>,
             String,
             String,
             usize,
@@ -93,13 +93,23 @@ impl Config {
                     panic!("Missing field name_blob in table search.");
                 });
 
-                let value: String = search.value.unwrap_or_else(|| {
-                    panic!("Missing field value in table search.");
-                });
+                let value: Vec<String> = search
+                    .value
+                    .unwrap_or_else(|| {
+                        panic!("Missing field value in table search.");
+                    })
+                    .split(",")
+                    .map(|s| String::from(s.trim()))
+                    .collect();
 
-                let column_filter: String = search.column_filter.unwrap_or_else(|| {
-                    panic!("Missing field column_filter in table search.");
-                });
+                let column_filter: Vec<String> = search
+                    .column_filter
+                    .unwrap_or_else(|| {
+                        panic!("Missing field column_filter in table search.");
+                    })
+                    .split(",")
+                    .map(|s| String::from(s.trim()))
+                    .collect();
 
                 let file_type: String = search.file_type.unwrap_or_else(|| {
                     panic!("Missing field file_type in table search.");

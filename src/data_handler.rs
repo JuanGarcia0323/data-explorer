@@ -53,7 +53,7 @@ impl DataHandler {
         return blobs;
     }
 
-    pub async fn get_specific_blob(&self, blob_name: &String) -> Bytes {
+    pub async fn get_specific_blob(&self, blob_name: &str) -> Bytes {
         let blob_stream = self
             .container_client
             .as_ref()
@@ -73,7 +73,7 @@ impl DataHandler {
             .expect("Error while dowloading blob_result data")
     }
 
-    pub fn get_data_frame(data: Bytes, file_type: &String) -> DataFrame {
+    pub fn get_data_frame(data: Bytes, file_type: &str) -> DataFrame {
         let reader = Cursor::new(data); // Create a Cursor pointing towards the Bytes that compound the Blob
         if file_type == "csv" {
             return CsvReader::new(reader)
@@ -89,7 +89,7 @@ impl DataHandler {
         return result;
     }
 
-    pub fn filter_df_equal(df: &DataFrame, column: &str, value: &str) -> bool {
+    pub fn filter_column(df: &DataFrame, column: &str, value: &str) -> bool {
         let selected_col = df.column(column).unwrap();
         let type_column = selected_col.dtype();
 
@@ -110,15 +110,30 @@ impl DataHandler {
         return !result.is_empty();
     }
 
-    pub fn save_file(df: &mut DataFrame, file_name: &String, path: &String) {
-        let file_name = format!("{path}{file_name}");
+    pub fn save_file(df: &mut DataFrame, file_name: &str, path: &str, file_type: &str) {
+        let mut checked_path: String = String::from(path);
+        let mut checked_file_name: String = String::from(file_name);
+
+        if file_name.contains("/") {
+            let mut paths: Vec<String> = file_name.split("/").map(|s| String::from(s)).collect();
+            checked_file_name = paths.pop().unwrap();
+            checked_path = format!("{}/", paths.join("/"))
+        }
+
+        let file_name = format!("{checked_path}{checked_file_name}");
         let file = File::create(&file_name).unwrap_or_else(|err| {
             if err.kind() == ErrorKind::NotFound {
-                create_dir_all(path).unwrap();
+                create_dir_all(&checked_path).unwrap();
                 return File::create(&file_name).unwrap();
             }
             panic!("{err}")
         });
-        CsvWriter::new(file).finish(df).unwrap();
+
+        if file_type == "csv" {
+            CsvWriter::new(file).finish(df).unwrap();
+            return;
+        }
+
+        ParquetWriter::new(file).finish(df).unwrap();
     }
 }

@@ -3,9 +3,9 @@ connection_string = "DefaultEndpointsProtocol=https;AccountName=azdsiodsbcdev;Ac
 container_name = "historicaliods"
 
 [search]
-name_blob = "reject_data/rawdata_20180902_9_8"
-value = "20762"
-column_filter = "RcdIdx"
+name_blob = "reject_data/rawdata_2018"
+value = "22, 61"
+column_filter = "SiteId, PLId"
 file_type = "parquet"
-path_save_files = "./"
+path_save_files = "./iods/"
 thread_slicing = 1000
