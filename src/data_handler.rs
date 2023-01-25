@@ -76,17 +76,16 @@ impl DataHandler {
 
     pub fn get_data_frame(data: Bytes, file_type: &String, field: &String) -> DataFrame {
         let reader = Cursor::new(data); // Create a Cursor pointing towards the Bytes that compound the Blob
-        let field_schema = Field::new(field, DataType::Utf8);
-        let schema = Schema::from(vec![field_schema].into_iter());
+                                        // let field_schema = Field::new(field, DataType::Utf8);
+                                        // let schema = Schema::from(vec![field_schema].into_iter());
         if file_type == "csv" {
             return CsvReader::new(reader)
                 .with_ignore_parser_errors(true)
-                .with_dtypes(Some(&schema))
+                // .with_dtypes(Some(&schema))
                 .finish()
                 .unwrap();
         }
         ParquetReader::new(reader).finish().unwrap()
-        // Read the Cursor and create a DataFrame
     }
 
     pub fn filter_blobs(data: Vec<Blob>, filter: impl FnMut(&Blob) -> bool) -> Vec<Blob> {
@@ -94,18 +93,16 @@ impl DataHandler {
         return result;
     }
 
-    pub fn filter_df_equal(df: &DataFrame, column: &str, value: &str) -> bool {
-        let filter = df.column(column).unwrap().equal(value).unwrap();
-        let result = df
-            .column(column)
-            .unwrap()
-            .filter(&filter)
-            .unwrap()
-            .is_empty();
-        if result {
-            return false;
-        }
-        return true;
+    pub fn filter_df_equal(df: DataFrame, column: &str, value: &str) -> bool {
+        println!("{value}");
+        let df = df
+            .lazy()
+            .select([col(column).filter(col(column).cast(DataType::Utf8).eq(value))])
+            // .filter(col(column).str().contains(value))
+            .collect()
+            .unwrap();
+        println!("{df} is empty: {}", df.is_empty());
+        return df.is_empty();
     }
 
     pub fn save_file(df: &mut DataFrame, file_name: &String, path: &String) {
