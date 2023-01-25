@@ -5,6 +5,7 @@ use std::io::{stdin, Error as IoError};
 use toml;
 
 #[derive(Serialize, Deserialize, Debug)]
+
 struct ConfigToml {
     connection: Option<ConfigConnection>,
     search: Option<ConfigSearch>,

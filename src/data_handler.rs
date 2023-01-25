@@ -16,7 +16,6 @@ use std::{
 // Generate wraper-error to have more exact errors while writing code
 // Add some kind of error handler inside of methods of DataHandler (in the best case something generic)
 // Find a way to use Proxie
-
 pub struct DataHandler {
     container_client: Option<ContainerClient>,
 }
@@ -74,14 +73,11 @@ impl DataHandler {
             .expect("Error while dowloading blob_result data")
     }
 
-    pub fn get_data_frame(data: Bytes, file_type: &String, field: &String) -> DataFrame {
+    pub fn get_data_frame(data: Bytes, file_type: &String) -> DataFrame {
         let reader = Cursor::new(data); // Create a Cursor pointing towards the Bytes that compound the Blob
-                                        // let field_schema = Field::new(field, DataType::Utf8);
-                                        // let schema = Schema::from(vec![field_schema].into_iter());
         if file_type == "csv" {
             return CsvReader::new(reader)
                 .with_ignore_parser_errors(true)
-                // .with_dtypes(Some(&schema))
                 .finish()
                 .unwrap();
         }
@@ -93,23 +89,25 @@ impl DataHandler {
         return result;
     }
 
-    pub fn filter_df_equal(df: DataFrame, column: &str, value: &str) -> bool {
-        println!("{value}");
-        let df = df
-            .lazy()
-            .select([col(column).cast(DataType::Utf8).str().contains(value)])
-            // .filter()
-            // .filter(col(column).str().contains(value))
-            .collect()
-            .unwrap();
-        let column_df = df.column(column).unwrap().cast(&DataType::Utf8);
-        println!("{df}");
-        println!("column {}", &column_df);
-        if column_df.is_empty() {
-            return false;
+    pub fn filter_df_equal(df: &DataFrame, column: &str, value: &str) -> bool {
+        let selected_col = df.column(column).unwrap();
+        let type_column = selected_col.dtype();
+
+        if type_column.is_float() {
+            let value: f64 = value.parse().unwrap();
+            let filter = selected_col.equal(value).unwrap();
+            let result = selected_col.filter(&filter).unwrap();
+            return !result.is_empty();
         }
-        return true;
-        // return df.is_empty();
+        if type_column.is_integer() {
+            let value: i64 = value.parse().unwrap();
+            let filter = selected_col.equal(value).unwrap();
+            let result = selected_col.filter(&filter).unwrap();
+            return !result.is_empty();
+        }
+        let filter = selected_col.equal(value).unwrap();
+        let result = selected_col.filter(&filter).unwrap();
+        return !result.is_empty();
     }
 
     pub fn save_file(df: &mut DataFrame, file_name: &String, path: &String) {

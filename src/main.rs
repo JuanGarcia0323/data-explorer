@@ -93,9 +93,8 @@ async fn analyse_data(
     let mut results: Vec<Option<DataFrame>> = vec![];
     for b in blobs {
         let data = handler.get_specific_blob(&b.name).await;
-        let mut df = DataHandler::get_data_frame(data, &config.file_type, &config.column_filter);
-        let founded =
-            DataHandler::filter_df_equal(df.clone(), &config.column_filter, &config.value);
+        let mut df = DataHandler::get_data_frame(data, &config.file_type);
+        let founded = DataHandler::filter_df_equal(&df, &config.column_filter, &config.value);
 
         if founded && return_first {
             results.push(Some(df));
