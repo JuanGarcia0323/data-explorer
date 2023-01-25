@@ -77,22 +77,14 @@ impl DataHandler {
     }
 
     pub fn get_data_frame(data: Bytes, file_type: &String) -> DataFrame {
-        let reader = Cursor::new(data);
-        // let mut field_schema = vec![];
-        // for f in field {
-        //     field_schema.push(Field::new(f, DataType::Utf8))
-        // }
-
-        // let schema = Schema::from(field_schema.into_iter());
+        let reader = Cursor::new(data); // Create a Cursor pointing towards the Bytes that compound the Blob
         if file_type == "csv" {
             return CsvReader::new(reader)
                 .with_ignore_parser_errors(true)
-                // .with_dtypes(Some(&schema))
                 .finish()
                 .unwrap();
         }
         ParquetReader::new(reader).finish().unwrap()
-        // Read the Cursor and create a DataFrame
     }
 
     pub fn filter_blobs(data: Vec<Blob>, filter: impl FnMut(&Blob) -> bool) -> Vec<Blob> {
@@ -101,26 +93,24 @@ impl DataHandler {
     }
 
     pub fn filter_column(df: &DataFrame, column: &str, value: &str) -> bool {
-        let filter = df
-            .column(column)
-            .unwrap()
-            .cast(&DataType::Utf8)
-            .unwrap()
-            .equal(value)
-            .unwrap();
-        // let filter = df.column(column).unwrap().equal(value).unwrap();
-        let result = df
-            .column(column)
-            .unwrap()
-            .cast(&DataType::Utf8)
-            .unwrap()
-            .filter(&filter)
-            .unwrap()
-            .is_empty();
-        if result {
-            return false;
+        let selected_col = df.column(column).unwrap();
+        let type_column = selected_col.dtype();
+
+        if type_column.is_float() {
+            let value: f64 = value.parse().unwrap();
+            let filter = selected_col.equal(value).unwrap();
+            let result = selected_col.filter(&filter).unwrap();
+            return !result.is_empty();
         }
-        return true;
+        if type_column.is_integer() {
+            let value: i64 = value.parse().unwrap();
+            let filter = selected_col.equal(value).unwrap();
+            let result = selected_col.filter(&filter).unwrap();
+            return !result.is_empty();
+        }
+        let filter = selected_col.equal(value).unwrap();
+        let result = selected_col.filter(&filter).unwrap();
+        return !result.is_empty();
     }
 
     pub fn save_file(df: &mut DataFrame, file_name: &String, path: &String) {

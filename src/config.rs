@@ -98,7 +98,7 @@ impl Config {
                         panic!("Missing field value in table search.");
                     })
                     .split(",")
-                    .map(|s| String::from(s))
+                    .map(|s| String::from(s.trim()))
                     .collect();
 
                 let column_filter: Vec<String> = search
@@ -107,7 +107,7 @@ impl Config {
                         panic!("Missing field column_filter in table search.");
                     })
                     .split(",")
-                    .map(|s| String::from(s))
+                    .map(|s| String::from(s.trim()))
                     .collect();
 
                 let file_type: String = search.file_type.unwrap_or_else(|| {
