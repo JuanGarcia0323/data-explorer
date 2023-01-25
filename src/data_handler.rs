@@ -97,12 +97,19 @@ impl DataHandler {
         println!("{value}");
         let df = df
             .lazy()
-            .select([col(column).filter(col(column).cast(DataType::Utf8).eq(value))])
+            .select([col(column).cast(DataType::Utf8).str().contains(value)])
+            // .filter()
             // .filter(col(column).str().contains(value))
             .collect()
             .unwrap();
-        println!("{df} is empty: {}", df.is_empty());
-        return df.is_empty();
+        let column_df = df.column(column).unwrap().cast(&DataType::Utf8);
+        println!("{df}");
+        println!("column {}", &column_df);
+        if column_df.is_empty() {
+            return false;
+        }
+        return true;
+        // return df.is_empty();
     }
 
     pub fn save_file(df: &mut DataFrame, file_name: &String, path: &String) {
