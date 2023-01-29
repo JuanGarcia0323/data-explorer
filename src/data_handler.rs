@@ -38,23 +38,25 @@ impl DataHandler {
         &mut self,
         filter: impl Fn(&Blob) -> bool,
         while_download: impl Fn(Vec<Blob>) -> T,
-    ) -> Vec<T> {
+    ) -> Vec<T::Output> {
         let mut stream = self.get_stream();
         let mut filtered_blobs: Vec<Blob> = vec![];
-        let mut result: Vec<T> = vec![];
+        let mut result: Vec<T::Output> = vec![];
 
         while let Some(value) = stream.next().await {
-            value.unwrap().blobs.blobs().for_each(|b| {
-                if filter(b) {
-                    filtered_blobs.push(b.to_owned())
+            let blobs: Vec<Blob> = value.unwrap().blobs.blobs().map(|b| b.to_owned()).collect();
+            for b in blobs {
+                if filter(&b) {
+                    filtered_blobs.push(b)
                 }
-                if filtered_blobs.len() > 2000 {
-                    result.push(while_download(filtered_blobs.split_off(0)));
+                if filtered_blobs.len() > 5000 {
+                    result.push(while_download(filtered_blobs.split_off(0)).await);
                 }
-            });
+            }
         }
 
-        result.push(while_download(filtered_blobs));
+        result.push(while_download(filtered_blobs).await);
+
         return result;
     }
 

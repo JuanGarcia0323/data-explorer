@@ -12,13 +12,15 @@ use std::{
     io::{Cursor, ErrorKind},
 };
 
-pub async fn multi_thread_analisis(config: &Config, blobs: Vec<Blob>) -> Vec<DataFrame> {
+pub async fn multi_thread_analisis(
+    config: &Config,
+    blobs: Vec<Blob>,
+) -> Vec<JoinHandle<Vec<Option<DataFrame>>>> {
     println!("Muti_thread_analisis have been called");
     let thread_slicing = config.thread_slicing;
     let limit = blobs.len();
 
     let mut handles: Vec<JoinHandle<Vec<Option<DataFrame>>>> = vec![];
-    let mut result: Vec<DataFrame> = vec![];
     let mut counter = 0;
 
     while counter < limit {
@@ -26,29 +28,20 @@ pub async fn multi_thread_analisis(config: &Config, blobs: Vec<Blob>) -> Vec<Dat
             let rest = limit - counter;
             let sliced_blobs = blobs[counter..counter + rest].to_owned();
             counter = counter + rest;
-            let handle = thread_process(sliced_blobs);
+            let handle = thread_analisis(sliced_blobs);
             handles.push(handle);
             continue;
         }
 
         let sliced_blobs = blobs[counter..counter + thread_slicing].to_owned();
-        let handle = thread_process(sliced_blobs);
+        let handle = thread_analisis(sliced_blobs);
         handles.push(handle);
         counter = counter + thread_slicing;
     }
 
     println!("{} threads were created", handles.len());
 
-    for handle in handles {
-        let result_thread = handle.await.unwrap();
-        for r in result_thread {
-            if r.is_some() {
-                result.push(r.unwrap())
-            }
-        }
-    }
-
-    return result;
+    return handles;
 }
 
 pub async fn get_filtered_data(config: &Config, handler: &mut DataHandler) -> Vec<Blob> {
@@ -93,7 +86,7 @@ pub async fn analyse_data(
     return results;
 }
 
-pub fn thread_process(sliced_blobs: Vec<Blob>) -> JoinHandle<Vec<Option<DataFrame>>> {
+pub fn thread_analisis(sliced_blobs: Vec<Blob>) -> JoinHandle<Vec<Option<DataFrame>>> {
     tokio::spawn(async move {
         let config = Config::new();
         let mut handler = DataHandler::new(&config.container_name, &config.connection_string);

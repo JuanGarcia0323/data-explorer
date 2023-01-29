@@ -1,37 +1,34 @@
 mod config;
-mod data_anlisis;
+mod data_analisis;
 mod data_handler;
 mod utils;
 
 use azure_storage_blobs::prelude::Blob;
 use config::Config;
-use data_anlisis::multi_thread_analisis;
+use data_analisis::multi_thread_analisis;
 use data_handler::DataHandler;
+use polars::prelude::DataFrame;
 use utils::{get_input, measure_time};
 
 #[tokio::main]
 async fn main() {
     measure_time(Some("All the execution took"), excute()).await;
+
+    let finish = Some("The execution end, press enter to continue");
+    get_input(finish);
 }
 
 async fn excute() {
     let config = Config::new();
     let mut blob_handler = DataHandler::new(&config.container_name, &config.connection_string);
+    let mut results: Vec<DataFrame> = vec![];
 
     println!(
         "Starting search for {}, with the value of: {:?}",
         &config.name_blob, &config.value
     );
 
-    // let filtered_blobs = measure_time(
-    //     Some("Gettin and filtering the data, took"),
-    //     get_filtered_data(&config, &mut blob_handler),
-    // )
-    // .await;
-
-    // println!("len filtered blobs: {}", filtered_blobs.len());
-
-    let result = measure_time(
+    let analisis = measure_time(
         Some("Analysing and getting the data at the same time took"),
         blob_handler.analyse_while_download(
             |b: &Blob| config.regx.is_match(&b.name),
@@ -40,11 +37,16 @@ async fn excute() {
     )
     .await;
 
-    for r in result {
-        let result = measure_time(Some("Analisis of thread took"), r).await;
-        println!("result len: {}", result.len());
+    for r in analisis {
+        for handle in r {
+            let result_thread = handle.await.unwrap();
+            for r in result_thread {
+                if r.is_some() {
+                    results.push(r.unwrap());
+                }
+            }
+        }
     }
 
-    let finish = Some("The execution end, press enter to continue");
-    get_input(finish);
+    println!("result len: {}", results.len());
 }
