@@ -9,3 +9,5 @@ column_filter = "SiteId, PLId"
 file_type = "parquet"
 path_save_files = "./iods/"
 thread_slicing = 1000
+thread_calling = 1500
+save_files = "false"

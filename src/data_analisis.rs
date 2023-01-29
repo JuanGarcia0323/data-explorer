@@ -16,7 +16,6 @@ pub async fn multi_thread_analisis(
     config: &Config,
     blobs: Vec<Blob>,
 ) -> Vec<JoinHandle<Vec<Option<DataFrame>>>> {
-    println!("Muti_thread_analisis have been called");
     let thread_slicing = config.thread_slicing;
     let limit = blobs.len();
 
@@ -56,6 +55,7 @@ pub async fn analyse_data(
     handler: &mut DataHandler,
     blobs: Vec<Blob>,
     return_first: bool,
+    save_files: bool,
 ) -> Vec<Option<DataFrame>> {
     let mut results: Vec<Option<DataFrame>> = vec![];
     for b in blobs {
@@ -78,11 +78,12 @@ pub async fn analyse_data(
         }
 
         if founded {
-            save_file(&mut df, &b.name, &config.path_save_files, &config.file_type);
+            if save_files {
+                save_file(&mut df, &b.name, &config.path_save_files, &config.file_type);
+            }
             results.push(Some(df));
         }
     }
-    println!("results from thread: {}", results.len());
     return results;
 }
 
@@ -90,7 +91,14 @@ pub fn thread_analisis(sliced_blobs: Vec<Blob>) -> JoinHandle<Vec<Option<DataFra
     tokio::spawn(async move {
         let config = Config::new();
         let mut handler = DataHandler::new(&config.container_name, &config.connection_string);
-        analyse_data(&config, &mut handler, sliced_blobs, false).await
+        analyse_data(
+            &config,
+            &mut handler,
+            sliced_blobs,
+            false,
+            config.save_files,
+        )
+        .await
     })
 }
 

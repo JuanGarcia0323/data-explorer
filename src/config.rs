@@ -25,6 +25,8 @@ struct ConfigSearch {
     file_type: Option<String>,
     path_save_files: Option<String>,
     thread_slicing: Option<usize>,
+    thread_calling: Option<usize>,
+    save_files: Option<String>,
 }
 
 #[derive(Debug)]
@@ -38,6 +40,8 @@ pub struct Config {
     pub path_save_files: String,
     pub regx: Regex,
     pub thread_slicing: usize,
+    pub thread_calling: usize,
+    pub save_files: bool,
 }
 
 impl Config {
@@ -80,13 +84,24 @@ impl Config {
             }
         };
 
-        let (name_blob, value, column_filter, file_type, path_save_files, thread_slicing): (
+        let (
+            name_blob,
+            value,
+            column_filter,
+            file_type,
+            path_save_files,
+            thread_slicing,
+            thread_calling,
+            save_files,
+        ): (
             String,
             Vec<String>,
             Vec<String>,
             String,
             String,
             usize,
+            usize,
+            bool,
         ) = match config_toml.search {
             Some(search) => {
                 let name_blob: String = search.name_blob.unwrap_or_else(|| {
@@ -121,10 +136,19 @@ impl Config {
                 });
 
                 let thread_slicing: usize = search.thread_slicing.unwrap_or_else(|| {
-                    println!("The value couldn't be found or converted to u32, so the default value will be 100");
-                    // String::from("100")
+                    println!("The thread_slicing couldn't be found or converted to usize, so the default value will be 100");
                     100
                 });
+
+                let thread_calling: usize = search.thread_calling.unwrap_or_else(|| {
+                    println!("The thread_calling couldn't be found or converted to usize, so the default value will be 1500");
+                    1500
+                });
+
+                let save_files: bool = if search.save_files.unwrap_or_else(|| {
+                    println!("The save_files couldn't be found or converted to bool, so the default value will be false");
+                    String::from("false")
+                }).trim().to_lowercase() == "true" {true} else {false};
                 (
                     name_blob,
                     value,
@@ -132,6 +156,8 @@ impl Config {
                     file_type,
                     path_save_files,
                     thread_slicing,
+                    thread_calling,
+                    save_files,
                 )
             }
             None => {
@@ -157,6 +183,8 @@ impl Config {
             regx,
             path_save_files,
             thread_slicing,
+            thread_calling,
+            save_files,
         }
     }
 }

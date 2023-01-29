@@ -33,6 +33,7 @@ async fn excute() {
         blob_handler.analyse_while_download(
             |b: &Blob| config.regx.is_match(&b.name),
             |b: Vec<Blob>| multi_thread_analisis(&config, b),
+            config.thread_calling,
         ),
     )
     .await;

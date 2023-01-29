@@ -38,6 +38,7 @@ impl DataHandler {
         &mut self,
         filter: impl Fn(&Blob) -> bool,
         while_download: impl Fn(Vec<Blob>) -> T,
+        thread_calling: usize,
     ) -> Vec<T::Output> {
         let mut stream = self.get_stream();
         let mut filtered_blobs: Vec<Blob> = vec![];
@@ -49,7 +50,7 @@ impl DataHandler {
                 if filter(&b) {
                     filtered_blobs.push(b)
                 }
-                if filtered_blobs.len() > 5000 {
+                if filtered_blobs.len() > thread_calling {
                     result.push(while_download(filtered_blobs.split_off(0)).await);
                 }
             }
